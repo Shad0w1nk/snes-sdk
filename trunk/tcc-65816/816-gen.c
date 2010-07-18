@@ -123,24 +123,12 @@ char* get_sym_str(Sym* sym)
   
   name[0] = 0;
   /* if static, add prefix */
-#if 0
-  if(sym->type.t & VT_STATICLOCAL) {
-    strcpy(name, "__local_");
-  }
-  else
-#endif
   if(sym->type.t & VT_STATIC) {
     //fprintf(stderr,"sym %s type 0x%x current_fn %s token %d\n",symname,sym->type.t,current_fn,sym->v);
     if((sym->type.t & VT_STATICLOCAL) && current_fn[0] != 0 && !((sym->type.t & VT_BTYPE) == VT_FUNC))
       sprintf(name, "%s_FUNC_%s_", static_prefix, current_fn);
     else
       strcpy(name, static_prefix);
-#if 0
-    for(int i = 0; i < labels; i++) {
-      if(strcmp(label[i].name, symname) == 0)
-        strcpy(name, "__local_");
-    }
-#endif
   }
     
   /* add symbol name */
@@ -188,7 +176,6 @@ void gsym_addr(int t, int a)
     labels++;
     label_workaround = NULL;
   }
-  //if(t == 768398 && a == 768505) asm("int $3");
   int i;
   // pair up the jump with the target address
   // the tcc_output_... function will add a
@@ -249,15 +236,6 @@ void load(int r, SValue* sv)
 
   //pr("; load r 0x%x fr 0x%x ft 0x%x fc 0x%x\n",r,fr,ft,fc);
 
-#if 0
-  // FIXME: Does that make sense?
-  if(fc>0) sign=0;
-  else {
-    sign = 1;
-    fc = -fc;
-  }
-#endif
-  
   int base = -1;
   v = fr & VT_VALMASK;
   if(fr & VT_LVAL) {
@@ -289,7 +267,6 @@ void load(int r, SValue* sv)
             if(!(ft & VT_UNSIGNED)) pr("xba\nxba\nbpl +\nora.w #$ff00\n+\n");
             pr("sta.b tcc__r%d\n", r);
             break;
-          //case 2: pr("stz.b tcc__r%dh\nldx #%d\nlda.l %s,x\nsta.b tcc__r%d\n", r, fc, sy, r); break;
           case 2: pr("lda.l %s + %d\nsta.b tcc__r%d\n", sy, fc, r); break;
           case 4: pr("lda.l %s + %d\nsta.b tcc__r%d\nlda.l %s + %d + 2\nsta.b tcc__r%dh\n", sy, fc, r, sy, fc, r); break;
           default: error("ICE 1");
@@ -341,7 +318,6 @@ void load(int r, SValue* sv)
       else {
         if(base == -1) {	// value of local at fc
           pr("; ld%d [sp,%d],tcc__r%d\n",length,fc,r);
-          //if(length == 2 && fc == -88 && r == 0) asm("int $3");
           fc = adjust_stack(fc, args_size + 2);
           switch(length) {
             case 1:
@@ -349,7 +325,6 @@ void load(int r, SValue* sv)
               if(!(ft & VT_UNSIGNED)) pr("xba\nxba\nbpl +\nora.w #$ff00\n+\n");
               pr("sta.b tcc__r%d\n", r);
               break;
-            //case 2: pr("stz.b tcc__r%dh\nlda %d + __%s_locals + 1,s\nsta.b tcc__r%d\n", r, fc+args_size, current_fn, r); break;
             case 2: pr("lda %d + __%s_locals + 1,s\nsta.b tcc__r%d\n", fc+args_size, current_fn, r); break;
             case 4: pr("lda %d + __%s_locals + 1,s\nsta.b tcc__r%d\nlda %d + __%s_locals + 1,s\nsta.b tcc__r%dh\n", fc+args_size, current_fn, r, fc+args_size + 2, current_fn, r); break;
             default: error("ICE 2"); break;
@@ -366,7 +341,6 @@ void load(int r, SValue* sv)
               if(!(ft & VT_UNSIGNED)) pr("xba\nxba\nbpl +\nora.w #$ff00\n+\n");
               pr("sta.b tcc__r%d\n", r);
               break;
-            //case 2: pr("stz.b tcc__r%dh\nldy #%d\nlda.b [tcc__r%d],y\nsta.b tcc__r%d\n", r, fc, base, r); break;
             case 2:
               if(!fc) pr("lda.b [tcc__r%d]\nsta.b tcc__r%d\n", base, r);
               else pr("ldy #%d\nlda.b [tcc__r%d],y\nsta.b tcc__r%d\n", fc, base, r);
@@ -381,7 +355,6 @@ void load(int r, SValue* sv)
   } else {	// VT_LVAL
     if(v == VT_CONST) {
       if(fr & VT_SYM) {	// symbolic constant
-        //greloc(cur_text_section, sv->sym, ind, R_DATA_32);
         char* sy = get_sym_str(sv->sym);
         pr("; ld%d #%s + %d, tcc__r%d (type 0x%x)\n", length,sy, fc, r, ft);
         if(length != PTR_SIZE) pr("; FISHY! length <> PTR_SIZE! (may be an array)\n");
@@ -402,7 +375,6 @@ void load(int r, SValue* sv)
             }
             pr("sta.b tcc__r%d\n", r);
             break;
-          //case 2: pr("stz.b tcc__r%dh\nlda.w #%d\nsta.b tcc__r%d\n", r, sv->c.ul & 0xffff, r); break;
           case 2: pr("lda.w #%d\nsta.b tcc__r%d\n", sv->c.ul & 0xffff, r); break;
           case 4: pr("lda.w #%d\nsta.b tcc__r%d\nlda.w #%d\nsta.b tcc__r%dh\n", sv->c.ul & 0xffff, r, sv->c.ul >> 16, r); break;
           default: error("ICE 4");
@@ -432,13 +404,11 @@ void load(int r, SValue* sv)
       pr("; jmpr(i) v 0x%x r 0x%x fc 0x%x\n",v,r,fc);
       pr("lda #%d\nbra +\n", t);
       gsym(fc);
-      //pr("lda #%d\n+ stz tcc__r%dh\nsta tcc__r%d\n", t^1, r,r);
       pr("lda #%d\n+\nsta.b tcc__r%d\n", t^1, r);	// stz rXh seems to be unnecessary (we only look at the lower word)
       return;
     }
     else if(v < VT_CONST) {	// register value
       if(is_float(ft)) {
-        //error("float 1");
         v -= TREG_F0;
         r -= TREG_F0;
         pr("; fmov tcc__f%d, tcc__f%d\n", v, r);
@@ -470,24 +440,6 @@ void store(int r, SValue* sv)
   
   pr("; store r 0x%x fr 0x%x ft 0x%x fc 0x%x\n",r,fr,ft,fc);
 
-#if 0
-  // function pointer issues
-  //store r 0x1 fr 0x1f2 ft 0x0 fc 0xfffffffc
-  // struct issues
-  // store r 0x0 fr 0x1f2 ft 0x0 fc 0xfffffffe
-  if(r == 0 && fr == 0x1f2 && ft == 0 && fc == -2 && strcmpr(current_fn,"nimmmich") == 0) {
-    r = *((int*)NULL);
-  }
-#endif
-
-#if 0
-  if(fc >= 0) sign = 0;
-  else {
-    sign = 1;
-    fc = -fc;
-  }
-#endif
-  
   v = fr & VT_VALMASK;
   base = -1;
   if ((fr & VT_LVAL) || fr == VT_LOCAL) {
@@ -523,12 +475,10 @@ void store(int r, SValue* sv)
         load(base=9,&v1);
         fc = sign = 0;
         v = VT_LOCAL;
-        // unsure length = type_size(&sv->type, &align);
       }
     }
     if(v == VT_LOCAL) {
-      if(r >= TREG_F0) { //is_float(ft)) {
-        //error("float 2");
+      if(r >= TREG_F0) {
         if(base < 0) {
           pr("; fst%d tcc__f%d, [sp,%d]\n", length, r - TREG_F0, fc);
           fc = adjust_stack(fc, args_size + 2);
@@ -590,12 +540,12 @@ void gfunc_call(int nb_args)
   
   int length;
 
-  // args_size is the size of the function call arguments already
-  // pushed on the stack. needed so that loads and stores to
-  // locals on the stack still work while building an argument
-  // list. needs to be restored before returning to make
-  // nested function calls work (passing structs by value causes
-  // a memcpy call)
+  /* args_size is the size of the function call arguments already
+     pushed on the stack. needed so that loads and stores to
+     locals on the stack still work while building an argument
+     list. needs to be restored before returning to make
+     nested function calls work (passing structs by value causes
+     a memcpy call) */
   int restore_args_size = args_size;
   
   for(i = 0;i < nb_args; i++) {
@@ -611,14 +561,14 @@ void gfunc_call(int nb_args)
           
           /* generate structure store */
           r = get_reg(RC_INT);
-          // put the pointer to struct store on the stack
-          // always remember: the 65xxs are off-by-one processors
-          // there is always something to increment or decrement to
-          // get the value you actually want. (cf. mvn/mvp)
+          /* put the pointer to struct store on the stack
+             always remember: the 65xxs are off-by-one processors
+             there is always something to increment or decrement to
+             get the value you actually want. (cf. mvn/mvp) */
           pr("stz.b tcc__r%dh\ntsa\nina\nsta.b tcc__r%d\n",r,r);
           
-          // here, TCC generates a memcpy call
-          // this recursion makes the restore_args_size stuff necessary
+          /* here, TCC generates a memcpy call
+             this recursion makes the restore_args_size stuff necessary */
           vset(&vtop->type, r | VT_LVAL, 0);
           vswap();
           vstore();
@@ -626,7 +576,6 @@ void gfunc_call(int nb_args)
         if(length != 4) error("unknown float size %d\n", length);
         r = gv(RC_FLOAT);
         pr("; fldpush%d (type 0x%x reg 0x%x) tcc__f%d\n", length, vtop->type.t, vtop->r, r - TREG_F0);
-        //pr("lda.b tcc__f%dh\npha\nlda.b tcc__f%d\npha\n", r - TREG_F0, r - TREG_F0);
         pr("pei (tcc__f%dh)\npei (tcc__f%d)\n", r - TREG_F0, r - TREG_F0);
         args_size += length;
       } else {
@@ -701,14 +650,10 @@ void gfunc_call(int nb_args)
       pr("; symfpcall vtop->sym %p vtop->r 0x%x vtop->type.t 0x%x c 0x%x\n", vtop->sym, vtop->r, vtop->type.t, vtop->c.ui);
       gv(RC_R10);
       pr("; zwei\njsr.l tcc__jsl_r10\n");
-      //char* sy = get_tok_str(vtop->sym->v, NULL);
-      //pr("lda.w #%s\nsta.b tcc__r10\nlda.w #:%s\nsta.b tcc__r10h\njsr.l tcc__jsl_r10\n", sy, sy);
     }
   }
   else
     pr("jsr.l %s\n", get_sym_str(vtop->sym));
-
-  //gcall_or_jmpr(0);
 
   if (args_size - restore_args_size && func_sym->r != FUNC_STDCALL) {
       pr("; add sp, #%d\n",args_size - restore_args_size);
@@ -726,7 +671,6 @@ int gjmp(int t)
   int i;
   // remember this jump so we can insert a label before the destination later
   pr("; gjmp_addr %d at %d\n",t,ind);
-  //if(t == 768227 && r == 768398) asm("int $3");
   pr("jmp.w " LOCAL_LABEL "\n",jumps);
   r = ind;
   jump[jumps][0] = r;
@@ -773,12 +717,6 @@ int gtst(int inv, int t)
   else if(v == VT_JMP || v == VT_JMPI) {
     pr("; VT_jmp r %d t %d ji %d inv %d vtop->c.i %d\n",r,t, v&1, inv, vtop->c.i);
     if((v & 1) == inv) {
-#if 0
-      int i;
-      for(i = 0; i < jumps; i++) {
-        if(jump[i][0] || jump[i][1]) pr("; jump[%d] = {%d, %d}\n", i, jump[i][0], jump[i][1]);
-      }
-#endif
       gsym(t);
       t = vtop->c.i;
     }
@@ -863,7 +801,6 @@ void gen_opi(int op)
   }
 
   pr("; gen_opi len %d op %c\n",length,op);
-  //pr("; vtop[0].r 0x%x t 0x%x vtop[-1].r 0x%x t 0x%x\n",vtop[0].r,vtop[0].type.t, vtop[-1].r,vtop[-1].type.t);
   switch(op) {
     // multiplication
     case '*':
@@ -970,7 +907,6 @@ void gen_opi(int op)
       else error("ICE 42");
         
       pr("; %s tcc__r%d (0x%x), tcc__r%d (0x%x) (fr type 0x%x c %d r type 0x%x)\n",opcalc, fr, fr,r,r,vtop[0].type.t,vtop[0].c.ul, vtop[-1].type.t);
-      //if(vtop[0].type.t == 0x24) asm("int $3");
       if(isconst) {
         pr("; length xxy %d vtop->type 0x%x\n", type_size(&vtop->type, &align),vtop->type.t);
         if (length == 4) {
@@ -994,7 +930,6 @@ void gen_opi(int op)
       r5 = get_reg(RC_R5);
       if(isconst) {
         pr("; cmpr(n)eq tcc__r%d, #%d\n", r, fc);
-        //if(r == 0 && fc == 0) asm("int $3");
         pr("ldx #1\nlda.b tcc__r%d\nsec\nsbc #%d\n", r, fc);
       }
       else {
@@ -1019,12 +954,10 @@ void gen_opi(int op)
       r5 = get_reg(RC_R5);
       if(isconst) {
         pr("; cmpcd tcc__r%d, #%d\n", r, fc);
-        //pr("stz.b tcc__r%dh\nldx #1\nlda.b tcc__r%d\nsec\nsbc.w #%d\n",r,r,fc);
         pr("ldx #1\nlda.b tcc__r%d\nsec\nsbc.w #%d\n",r,fc);
       }
       else {
         pr("; cmpcd tcc__r%d, tcc__r%d\n", r, fr);
-        //pr("stz.b tcc__r%dh\nldx #1\nlda.b tcc__r%d\nsec\nsbc.b tcc__r%d\n", r, r, fr);
         pr("ldx #1\nlda.b tcc__r%d\nsec\nsbc.b tcc__r%d\n", r, fr);
       }
       pr("tay\n"); // may need that later for long long
@@ -1138,7 +1071,6 @@ void float_to_woz(float, unsigned char*);
 
 void gen_opf(int op)
 {
-//  error("gen_opf 0x%x ('%c')\n",op,op);
   int r, fr, ft;
   float fcf;
   int length, align;
@@ -1159,21 +1091,18 @@ void gen_opf(int op)
   pr("; gen_opf len %d op 0x%x ('%c')\n",length,op,op);
   
   switch(op) {
-    // multiplication
     case '*':
       pr("jsr.l tcc__fmul\n");
       break;
 
-    // division
     case '/':
       pr("jsr.l tcc__fdiv\n");
       break;
 
-    // intops the 65816 can do in hardware      
     case '+':
       pr("jsr.l tcc__fadd\n");
       break;
-      
+    
     case '-':
       pr("jsr.l tcc__fsub\n");
       break;
@@ -1305,7 +1234,6 @@ void gfunc_prolog(CType* func_type)
   addr=3;	// skip 24-bit return address
   loc = 0;
   if((func_vt.t & VT_BTYPE) == VT_STRUCT) {
-    //fprintf(stderr,"struct!\n");
     func_vc = addr;
     addr += PTR_SIZE;
     n += PTR_SIZE;
@@ -1356,11 +1284,11 @@ void gfunc_epilog(void)
   section_closed = 1;
   
   if(-loc > 0x1f00) error("stack overflow");
-  //pr(".define __%s_locals %d\n",current_fn,-loc);
-  /* simply putting a .define after the function does not work in some cases
-     for unknown reasons (wla-dx complains about unresolved symbols)
-     putting them before the reference works, but this has to be done by the
-     output code, so we have to save the various locals sizes somewhere */
+  /* simply putting a ".define __<current_fn>_locals -<loc>" after the
+     function does not work in some cases for unknown reasons (wla-dx
+     complains about unresolved symbols); putting them before the reference
+     works, but this has to be done by the output code, so we have to save
+     the various locals sizes somewhere */
   strcpy(locals[localno], current_fn);
   localnos[localno] = -loc;
   localno++;

@@ -15,14 +15,22 @@ do
 	        	echo NOOPT
 	        	continue
 	        fi
+	        #if ! ./optimore-816r2/optimore-816 suite.asm suite2.asm >/dev/null ; then
+	        #	echo NOOPT2
+	        #	continue
+	        #else
+	        #	mv suite2.asm suite.asm
+	        #fi
 	fi
         if ! ../../wla_dx/wla-65816 -io ./suite.asm ./suite.obj ; then
         	echo NOASM
+        	mkdir -p failtraces
         	mv suite.asm failtraces/${i#*/}.asm
         	continue
         fi
 	if ! ../../wla_dx/wlalink/wlalink -Sno ../../libs/crt0_snes.obj ../../libs/libm.obj ../../libs/libtcc.obj ../../libs/libc.obj	suite.obj ./test.smc ; then
 		echo NOLINK
+		mkdir -p failtraces
 		mv suite.asm failtraces/${i#*/}.asm
 		continue
 	fi
@@ -31,7 +39,9 @@ do
 		rm -f failtraces/${i#*/}.{asm,trace}
 	else
 		echo "FAIL (exit code $?)"
+		mkdir -p failtraces
 		mv suite.asm failtraces/${i#*/}.asm
+		mv suite.asm.pre failtraces/${i#*/}.asm.pre
 		../../snes9x/snes9x ./test.smc -t
 		mv trace.log failtraces/${i#*/}.trace
 	fi

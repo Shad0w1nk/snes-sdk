@@ -294,7 +294,7 @@ tcc__start:
     ; write exit code to $fffd
     lda.b tcc__r0
     sep #$20
-    sta $fffd
+    sta.l $fffd
     rep #$20
     stp
 .ends

@@ -34,7 +34,7 @@ do
 		mv suite.asm failtraces/${i#*/}.asm
 		continue
 	fi
-	if ../../snes9x/snes9x ./test.smc 2>/dev/null >/dev/null ; then
+	if ../../bsnes/bsnes ./test.smc 2>/dev/null >/dev/null ; then
 		echo PASS
 		rm -f failtraces/${i#*/}.{asm,trace}
 	else
@@ -42,8 +42,6 @@ do
 		mkdir -p failtraces
 		mv suite.asm failtraces/${i#*/}.asm
 		mv suite.asm.pre failtraces/${i#*/}.asm.pre
-		../../snes9x/snes9x ./test.smc -t
-		mv trace.log failtraces/${i#*/}.trace
 	fi
 	xset r on
 done

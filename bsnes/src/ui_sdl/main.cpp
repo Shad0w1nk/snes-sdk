@@ -58,7 +58,8 @@ int16_t input_state(bool port, unsigned device, unsigned index, unsigned id) {
 }
 
 int main(int argc, char *argv[]) {
-  if(argc != 2) return 0;
+  int ret = 0;
+  if(argc != 2) return 1;
 
   atexit(SDL_Quit);
   SDL_Init(SDL_INIT_VIDEO);
@@ -96,7 +97,10 @@ int main(int argc, char *argv[]) {
   while(true) {
     SDL_Event event;
     SDL_PollEvent(&event);
-    if(event.type == SDL_QUIT) break;
+    if(event.type == SDL_QUIT) {
+      ret = 1;
+      break;
+    }
     if(event.type == SDL_KEYDOWN) {
       if(event.key.keysym.sym == SDLK_ESCAPE) {
         break;
@@ -112,5 +116,5 @@ int main(int argc, char *argv[]) {
   delete[] serial_data;
   //snes_unload();
   snes_term();
-  return 0;
+  return ret;
 }

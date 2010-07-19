@@ -22,6 +22,12 @@ void sCPU::op_write(uint32 addr, uint8 data) {
   status.clock_count = speed(addr);
   dma_edge();
   add_clocks(status.clock_count);
+  if (addr == 0xfffe) {
+    putc(data, stdout);
+  }
+  else if (addr == 0xfffd) {
+    exit(data);
+  }
   bus.write(addr, regs.mdr = data);
 }
 

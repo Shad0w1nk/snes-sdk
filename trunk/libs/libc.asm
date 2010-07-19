@@ -413,14 +413,14 @@ __builtin_abort:
 abort:
       sep #$20
       lda.b #$ff
-      sta $fffd
+      sta.l $fffd
       rep #$20
       stp
 
 exit:
       lda.b 4,s
       sep #$20
-      sta $fffd
+      sta.l $fffd
       rep #$20
       stp
 

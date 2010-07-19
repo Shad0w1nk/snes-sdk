@@ -83,5 +83,6 @@ clean: ui_clean
 	-@$(call delete,*.ilk)
 	-@$(call delete,*.pdb)
 	-@$(call delete,*.manifest)
+	-@$(call delete,../bsnes)
 
 help:;

@@ -110,7 +110,7 @@ int main(int argc, char *argv[]) {
   }
 
   delete[] serial_data;
-  snes_unload();
+  //snes_unload();
   snes_term();
   return 0;
 }

@@ -10,8 +10,7 @@ BINDIR=$(PREFIX)/bin
 AS=$(BINDIR)/wla-65816
 LD=$(BINDIR)/wlalink
 CC=$(BINDIR)/816-tcc
-#EMU=$(BINDIR)/snes9x
-EMU=bsnes
+EMU=$(BINDIR)/bsnes
 
 LIBDIR=$(PREFIX)/lib
 

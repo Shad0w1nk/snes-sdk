@@ -240,7 +240,7 @@ int include_file(char *name) {
   }
 
   /* reallocate tmp_a */
-  if (tmp_a_size < file_size) {
+  if (tmp_a_size < file_size || !tmp_a) {
 
     if (tmp_a != NULL)
       free(tmp_a);

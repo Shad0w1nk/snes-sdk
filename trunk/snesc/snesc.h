@@ -32,7 +32,7 @@ void clearjoy(unsigned int j);
 
 /* string */
 void writenum(unsigned long long num, unsigned char len, unsigned int *map, unsigned int p, unsigned int offset);
-void writestring(unsigned char *st, unsigned int *map, unsigned int p, unsigned int offset);
+void writestring(const char *st, unsigned int *map, unsigned int p, unsigned int offset);
 
 extern unsigned char snesc_timer_enabled;
 extern unsigned int snesc_timers[16];
@@ -47,7 +47,7 @@ struct oam_table1 {
 };
 
 extern struct oam_table1 snesc_oam_table1[128];
-extern unsigned int snesc_oam_table2[32];
+extern unsigned int snesc_oam_table2[16];
 extern unsigned char snesc_palette[512];
 
 struct dma_transfer {

@@ -31,9 +31,10 @@ unsigned char blocks[0x64], map[0x64] =
 int main() {
   snesc_init();
   
-  char st[17]="PLAYER 1\n\n READY", st2[10]="GAME OVER", st3[6]="PAUSE", st4[9]="        ";
-  unsigned int i, j, a, b=0, c, obx, oby, bx=5, by=11, py=0, x=94, y=109;
-  signed int dx=2, dy=1, px=80, xdir[4]={-2,-1,1,2}, ydir[4]={-1,-2,-2,-1};
+  const char *st="PLAYER 1\n\n READY", *st2="GAME OVER", *st3="PAUSE", *st4="        ";
+  unsigned int i, j, a, b=0, c, obx, oby, bx=5, by=11, x=94, y=109;
+  unsigned int px = 80;
+  signed int dx=2, dy=1, xdir[4]={-2,-1,1,2}, ydir[4]={-1,-2,-2,-1};
   unsigned int blockcount=0;
   unsigned long long score=0, hiscore=50000;
   unsigned int level2=1;
@@ -166,7 +167,7 @@ label1:
     obx = bx; oby = by;
     bx = (x-14)>>4; by = (y-14)>>3;
     b = bx+(by<<3)+(by<<1)-10;
-    if ((b >= 0) && (b<100)) {
+    if (b<100) {
       if (blocks[b] != 8) {
         blockcount--; 
         for (i=0;i<=level;i++)

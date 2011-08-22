@@ -1,4 +1,4 @@
-void writestring(unsigned char *st, unsigned int *map, unsigned int p, unsigned int offset)
+void writestring(const char *st, unsigned int *map, unsigned int p, unsigned int offset)
 {
   unsigned int sp = p; /* start position */
   unsigned int c;

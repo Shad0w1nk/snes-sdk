@@ -13,6 +13,7 @@ all: $(SUBDIRS)
 libs wla_dx wla_dx/wlalink wla_dx/wlab: dummy
 	cd $@ && $(MAKE) PREFIX=$(PREFIX)
 bsnes/src: dummy
+	mkdir -p bsnes/src/obj
 	cd $@ && $(MAKE) ui=ui_sdl
 
 tcc-65816: tcc-65816/config.h
